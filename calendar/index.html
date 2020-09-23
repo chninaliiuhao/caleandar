@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+		<title>Bootstrap 101 Template</title>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+		<script src="js/Vue2.6.11.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/lunar.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		<div id="app" class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<div class="panel panel-info">
+						<div class="panel-heading">
+							<label>日历表</label>
+						</div>
+						<div class="panel-body">
+							<table class="table table-bordered table-striped" border="" cellspacing="" cellpadding="">
+								<tr>
+									<th>星期日</th>
+									<th>星期一</th>
+									<th>星期二</th>
+									<th>星期三</th>
+									<th>星期四</th>
+									<th>星期五</th>
+									<th>星期六</th>
+								</tr>
+								<tr v-for="row in listDay">
+									<td v-for="col in row" v-bind:class="[{'success':col.is}]">
+										<p><h4><span v-bind:class="['label',{'label-primary':!col.is},{'label-danger':col.is}]" >{{col.day}}</span></h4></p>
+										<p><span  v-bind:class="['label',{'label-default':!col.is},{'label-danger':col.is}]">{{col.lunar}}</span></p>
+									</td>
+								</tr>
+							</table>
+						</div>
+						<div class="panel-footer form-inline">
+							<div class="form-group">
+								<input type="text" name="" class="form-control" v-model="yea" @keydown.enter="render" />
+								<label>年</label>
+							</div>
+							<div class="form-group">
+								<input type="text" name="" class="form-control" v-model="mon" @keydown.enter="render" />
+								<label>月</label>
+							</div>
+							<div class="form-group">
+								<input type="text" name="" class="form-control" v-model="day" @keydown.enter="render" />
+								<label>日</label>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script type="text/javascript">
+			var vm = new Vue({
+				el: '#app',
+				data: {
+					yea: 1970,
+					mon: 1,
+					day: 1,
+					systemDate: new Date(),
+					listDay: new Array()
+				},
+				methods: {
+					// 初始化
+					init:function(){
+						// 加载初始间
+						this.setDefaultDate(this.systemDate)
+						// 初始化数组
+						for (var i = 0; i < 5; i++) {
+							var item=this.listDay[i] = new Array()
+							for(var j=0;j<7;j++){
+								item.push('')
+							}
+						}
+						// 初始化列表
+						this.render()
+						
+					},
+					// 渲染列表
+					render: function() {
+						// 获取要渲染的天数
+						var endNum=this.getMonthDay(parseInt(this.mon))
+						var startNum=1
+						// 渲染
+						
+						// 获取这个月1号代表星期几
+						var date = new Date(this.yea, this.mon - 1, this.day)
+						date.setDate(1)
+						var startDay = date.getDay()
+
+						// 清空原数组
+						this.listDay.splice(0,7)
+						
+						// 渲染数组
+						for(var i=0;i<6;i++){
+							var item=new Array()
+							for(var j=0;j<7;j++){
+								if(startNum<=endNum){
+									if(i==0&&j<startDay){
+										item.push('')
+									}else{
+										item.push(this.converLunar(startNum))
+										startNum++
+									}
+								}else{
+									item.push('')
+								}
+							}
+							this.listDay.push(item)
+						}
+						
+						// console.log(this.listDay)
+					},
+					// 根据给定的时间设置相关时间
+					setDefaultDate: function(systemDate) {
+						this.yea = systemDate.getFullYear()
+						this.mon = systemDate.getMonth() + 1
+						this.day = systemDate.getDate()
+					},
+					// 判断是否是闰年
+					isYunYear: function(year) {
+						// 判断世纪闰年
+						if (year % 400 == 0) {
+							return false
+						} else {
+							// 判断是否是普通闰年
+							if (year % 4 == 0 && year % 100 != 0) {
+								return true
+							} else {
+								return false
+							}
+						}
+					},
+					// 获取当前这个月有多少天
+					getMonthDay: function(month) {
+						// 天数
+						var dayNum = 0;
+
+						switch (month) {
+							case 1:
+							case 3:
+							case 5:
+							case 7:
+							case 8:
+							case 10:
+							case 12:
+								dayNum = 31
+								break;
+							case 4:
+							case 6:
+							case 9:
+							case 11:
+								dayNum = 30
+								break;
+							case 2:
+								if (vm.isYunYear(this.yea)) {
+									dayNum = 29
+								} else {
+									dayNum = 28
+								}
+								break;
+						}
+						return dayNum
+					}
+					,
+					converLunar:function(num){
+						var item={
+							day:num,
+							lunar:'暂无',
+							is:false
+						}
+						
+						var lunar=Solar.fromYmd(this.yea,this.mon,num).getLunar()
+						item.lunar=lunar.toFullString().substring(0,9)
+						
+						if(parseInt(num)==parseInt(this.day))
+							item.is=true
+						
+						return item
+					}
+				},
+				created: function() {
+					this.init()
+				}
+			})
+		</script>
+	</body>
+</html>
